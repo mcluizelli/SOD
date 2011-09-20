@@ -36,13 +36,14 @@ SOD* DAnts::run(){
         //Return the best solution found so far.solution quality
         SOD *oCurrentSolution = oSbAS->run();
         oBestSolution = oCurrentSolution;
-/*
+
         //Here start the application of D-Ants.
         for(int iContDepot = 0; iContDepot < oCurrentSolution->getNumberDepot(); iContDepot++){
             //Calcule the center of gravity to each route.
             QList<RouteCenterGravity> oCentersGravity = calculeCenterGravityToRoutes(oCurrentSolution->getDepot(iContDepot));
             //Follow the D-Ants algorithm.
             QList<SOD*> oListSubProblems = sweepAlgorithmModified(oCentersGravity, oCurrentSolution, iContDepot);
+            //A cada cluster aplica-se o SbAS
             QList<SOD*> oListNewSolution = applySbASCluster(oListSubProblems);
             compareResults(iContDepot, oCurrentSolution, oListNewSolution);
 
@@ -58,7 +59,7 @@ SOD* DAnts::run(){
         }
 
         this->oRouteIndexByCluster.clear();
-    */
+
     }
 
     return oBestSolution;
@@ -136,7 +137,6 @@ QList<SOD*> DAnts::sweepAlgorithmModified(QList<RouteCenterGravity> oCentersGrav
 
         if(iContNst < iNst && i < oCentersGravity.size()){
 
-
             //qDebug() << "add route a cluster";
             for(int iOrder = 0; iOrder < oCentersGravity.at(iCont).oRoute->getRoute()->size(); iOrder++){
                 oCluster->append(oCentersGravity.at(iCont).oRoute->getRoute()->at(iOrder));
@@ -203,22 +203,26 @@ void DAnts::compareResults(int iDepot, SOD *oSolution, QList<SOD*> oListSubProbl
             nCurrentCost += oSolution->getCostRouteByDepot(iDepot, this->oRouteIndexByCluster.at(iContSubProblem).oListIndexRoutes.at(i) );
         }
 
-        nNewCostSubProblem = oSubProblem->getCostSolution();
 
         if(nCurrentCost > nNewCostSubProblem){
             //Rota nova é melhor, entao removo a anterior e insiro a nova.
             nCostFinal += nNewCostSubProblem;
-/*
+
             //remove
             for(int i = 0; i < this->oRouteIndexByCluster.at(iContSubProblem).oListIndexRoutes.size(); i++){
                 oDepotAux->removeRoute(this->oRouteIndexByCluster.at(iContSubProblem).oListIndexRoutes.at(i));
             }
 
             //add
-            Route *oNewRoute = Route();
-            oNewRoute->addOrder();
-            oDepotAux->addRoute();
-*/
+            for(int i = 0; i < oSubProblem->getDepot(0)->getRoutes(); i++){
+                Route *oNewRoute = new Route;
+                for(int j = 0; j < oSubProblem->getDepot(0)->getRoutes().size(); j++){
+                    oNewRoute->addOrder(oSubProblem->getDepot(0)->getRoutes().at(j));
+                }
+                oDepotAux->addRoute(oNewRoute);
+
+            }
+
         }else{
             nCostFinal += nCurrentCost;
         }
