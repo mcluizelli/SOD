@@ -45,6 +45,7 @@ private:
 public:
     SbAS(SOD oSodInitialSolution, PheromoneInf *oPheromoneInf, int iNumTotalAnts, float nAlpha, float nBeta, float nRo, int iNumSolutionElitist);
     SOD* run();
+    SOD* runForSub();
     //In this step is aplied a saving algorith for the Ant System.
     SOD* stepConstrutive();
     //In this step is aplied two heuristics. A swap and a 2opt.

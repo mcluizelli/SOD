@@ -315,6 +315,29 @@ float SOD::getCostSolution(){
 
 }
 
+
+float SOD::getCostRouteByDepot(int iIndexDepot, int iIndexRoute){
+
+    float nCost = 0.0;
+
+    Depot *opDepotAux = listDepot.at(iIndexDepot);
+    QList<Route*> oListRoutes = opDepotAux->getRoutes();
+
+    Route *oRouteAux = oListRoutes.at(iIndexRoute);
+    QList<int> *oListOrdersRoute = oRouteAux->getRoute();
+
+    nCost += getDistance(opDepotAux->getIndexOfOrder(), oListOrdersRoute->at(0));
+
+    for(int iCont3 = 0; iCont3 < oRouteAux->getRoute()->size() -1 ; iCont3++){
+        nCost += getDistance(oListOrdersRoute->at(iCont3), oListOrdersRoute->at(iCont3 + 1));
+    }
+
+     nCost += getDistance(opDepotAux->getIndexOfOrder(), oListOrdersRoute->at(oListOrdersRoute->size() - 1));
+
+    return nCost;
+
+}
+
 /**
   *This method calculates the cost associeate to specific depot.
   *@param int

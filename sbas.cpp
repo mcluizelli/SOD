@@ -79,6 +79,19 @@ SOD* SbAS::run(){
     return this->oSODBestSolution;
 }
 
+SOD* SbAS::runForSub(){
+    //This runForSub is diferent to run() because dont run the step UpdatePheromone. Its used when is call to subproblem of D-Ants algorithm.
+    for(int iAnts = 0; iAnts < this->iNumTotalAnts; iAnts++){
+        SOD *oSolution = stepConstrutive();
+        stepLocalSerch(oSolution);
+        //Lista de solucoes elite.
+        saveSolution(oSolution);
+    }
+    this->oSODBestSolution = this->oSodElitistListSolution.at(0);
+
+    return this->oSODBestSolution;
+}
+
 void SbAS::stepUpdatePheromone(){
     int iNumOrders = this->oSodInitialSolution.getNumOrders();
     float nValueAux = 0.0;

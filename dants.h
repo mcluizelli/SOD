@@ -17,22 +17,35 @@ public:
 
 };
 
+class RouteIndexByCluster{
+
+public:
+    //Store the index of routes
+    QList<int> oListIndexRoutes;
+
+};
+
 
 class DAnts
 {
 
 private:
 
-    int          iNumMaxIterationDAnts;
-    int          iNs;
-    float        nCostBestSolution;
-    SOD          oSodInitialSolution;
-    SOD          *oBestSolution;
-    PheromoneInf *oPheromoneInf;
+    //private atribute.
+    int                         iNumMaxIterationDAnts;
+    int                         iNs;
+    float                       nCostBestSolution;
+    SOD                         oSodInitialSolution;
+    SOD                         *oBestSolution;
+    PheromoneInf                *oPheromoneInf;
+    QList<RouteIndexByCluster>  oRouteIndexByCluster;
 
-    QList<RouteCenterGravity> calculeCenterGravityToRoutes(Depot *oDepot);
-    QList<SOD*> sweepAlgorithmModified(QList<RouteCenterGravity> oCentersGravity, SOD *oCurrentSolution, int iContDepot);
-    void applySbASCluster(int iDepot, SOD* oSolution, QList<SOD*> oListSubProblems);
+    //private methods.
+    QList<RouteCenterGravity>   calculeCenterGravityToRoutes(Depot *oDepot);
+    QList<SOD*>                 sweepAlgorithmModified(QList<RouteCenterGravity> oCentersGravity, SOD *oCurrentSolution, int iContDepot);
+    QList<SOD*>                 applySbASCluster(QList<SOD*> oListSubProblems);
+    void                        compareResults(int iDepot, SOD *oSolution, QList<SOD*> oListSubProblems);
+
 public:
 
     DAnts(SOD oSodInitialSolution, int iNumMaxIterationDAnts);
