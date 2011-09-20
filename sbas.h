@@ -36,14 +36,15 @@ private:
     SOD*            oSODBestSolution;
     //This variables represents the relavative influence of the saving and the pheromone trails.
     float           nBeta, nAlpha, nRo;
+    float           nCostBestSolution;
     PheromoneInf    *oPheromoneConcentration;
-    int             iKNeighbor, iNumTotalAnts, iNumSulutionElitist;
+    int             iKNeighbor, iNumTotalAnts, iNumSulutionElitist, iNumTotalAntsSubProblem;
 
     QList<SavingAS> buildSavingList(Depot *oDepot);
     void            saveSolution(SOD *oSolution);
 
 public:
-    SbAS(SOD oSodInitialSolution, PheromoneInf *oPheromoneInf, int iNumTotalAnts, float nAlpha, float nBeta, float nRo, int iNumSolutionElitist);
+    SbAS(SOD oSodInitialSolution, PheromoneInf *oPheromoneInf, int iNumTotalAnts, float nAlpha, float nBeta, float nRo, int iNumSolutionElitist, int iNumTotalAntsSubProblem);
     SOD* run();
     SOD* runForSub();
     //In this step is aplied a saving algorith for the Ant System.

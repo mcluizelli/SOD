@@ -24,7 +24,8 @@ SOURCES += main.cpp\
     sod.cpp \
     gui/showroutes.cpp \
     gui/mainwindow.cpp \
-    joinroutes.cpp
+    joinroutes.cpp \
+    swap.cpp
 
 HEADERS  += \
     dants.h \
@@ -40,9 +41,27 @@ HEADERS  += \
     sbas.h \
     gui/mainwindow.h \
     gui/showroutes.h \
-    joinroutes.h
+    joinroutes.h \
+    swap.h \
+    joinRoutes/simplemove.h \
+    joinRoutes/route.h \
+    joinRoutes/moves.h \
+    joinRoutes/joinroutes.h
 
 FORMS    += mainwindow.ui
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

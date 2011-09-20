@@ -5,6 +5,7 @@
 #include "qmath.h"
 #include "gui/showroutes.h"
 #include <QDebug>
+#include <QTime>
 
 bool comparePolarDAnts(OrderPolar order1, OrderPolar order2){
 
@@ -13,26 +14,29 @@ bool comparePolarDAnts(OrderPolar order1, OrderPolar order2){
 
 }
 
-DAnts::DAnts(SOD oSodInitialSolution, int iNumMaxIterationDAnts)
+DAnts::DAnts(SOD oSodInitialSolution, int iNumMaxMilSecRun)
 {
     this->iNs = 3;
     this->nCostBestSolution = (float)9999999999;
     this->oSodInitialSolution = oSodInitialSolution;
-    this->iNumMaxIterationDAnts = iNumMaxIterationDAnts;
+    this->iNumMaxMilSecRun = iNumMaxMilSecRun;
     this->oPheromoneInf = new PheromoneInf(&oSodInitialSolution);
 }
 
 SOD* DAnts::run(){
 
     float nCostAux = 0.0;
+    QTime oTempo;
+    oTempo.start();
 
-    for(int iCont1 = 0; iCont1 < iNumMaxIterationDAnts; iCont1++){
+    while(oTempo.elapsed() < this->iNumMaxMilSecRun){
 
         //First: Apply SbAS to solve instance;
-        SbAS *oSbAS = new SbAS(this->oSodInitialSolution, oPheromoneInf, this->oSodInitialSolution.getNumOrders(), 5, 5, 0.95, 3);
+        SbAS *oSbAS = new SbAS(this->oSodInitialSolution, oPheromoneInf, 3, 5, 5, 0.95, 3, 75);
         //Return the best solution found so far.solution quality
         SOD *oCurrentSolution = oSbAS->run();
-
+        oBestSolution = oCurrentSolution;
+/*
         //Here start the application of D-Ants.
         for(int iContDepot = 0; iContDepot < oCurrentSolution->getNumberDepot(); iContDepot++){
             //Calcule the center of gravity to each route.
@@ -54,7 +58,7 @@ SOD* DAnts::run(){
         }
 
         this->oRouteIndexByCluster.clear();
-
+    */
     }
 
     return oBestSolution;
@@ -172,9 +176,9 @@ QList<SOD*> DAnts::applySbASCluster(QList<SOD*> oListSubProblems){
     //Apply the SbAS algorithm each subproblem.
     QList<SOD*> oListNewSolution;
 
-    for(int i = 0; i < oListSubProblems.size(); i++){\
+    for(int i = 0; i < oListSubProblems.size(); i++){
         //Call SbAS for solve the subproblems.
-        SbAS *sb = new SbAS(*oListSubProblems.at(i), this->oPheromoneInf, 100, 5, 5, 0.95, 3) ;
+        SbAS *sb = new SbAS(*oListSubProblems.at(i), this->oPheromoneInf, 1, 5, 5, 0.95, 3, 75) ;
         oListNewSolution.append(sb->runForSub());
     }
 
@@ -190,31 +194,31 @@ void DAnts::compareResults(int iDepot, SOD *oSolution, QList<SOD*> oListSubProbl
     Depot *oDepotAux = oSolution->getDepot(iDepot);
 
     for(int iContSubProblem = 0; iContSubProblem < oListSubProblems.size(); iContSubProblem++){
+
         nNewCostSubProblem = 0.0, nCurrentCost = 0.0;
         SOD* oSubProblem   = oListSubProblems.at(iContSubProblem);
         nNewCostSubProblem = oSubProblem->getCostSolution();
+
         for(int i = 0; i < this->oRouteIndexByCluster.at(iContSubProblem).oListIndexRoutes.size(); i++){
             nCurrentCost += oSolution->getCostRouteByDepot(iDepot, this->oRouteIndexByCluster.at(iContSubProblem).oListIndexRoutes.at(i) );
         }
 
         nNewCostSubProblem = oSubProblem->getCostSolution();
 
-        //qDebug() << nCurrentCost << " - " << nNewCostSubProblem;
-
         if(nCurrentCost > nNewCostSubProblem){
             //Rota nova é melhor, entao removo a anterior e insiro a nova.
             nCostFinal += nNewCostSubProblem;
+/*
             //remove
-            /*
-
             for(int i = 0; i < this->oRouteIndexByCluster.at(iContSubProblem).oListIndexRoutes.size(); i++){
                 oDepotAux->removeRoute(this->oRouteIndexByCluster.at(iContSubProblem).oListIndexRoutes.at(i));
             }
+
             //add
             Route *oNewRoute = Route();
             oNewRoute->addOrder();
             oDepotAux->addRoute();
-            */
+*/
         }else{
             nCostFinal += nCurrentCost;
         }

@@ -25,6 +25,17 @@ int main(int argc, char *argv[])
     //Alocated orders to depots.
     vrp.alocateOrderToDepots();
 
+    //Apply SbAS algorithm
+    /*
+    PheromoneInf *oPheromoneInf = new PheromoneInf(&vrp);
+    SbAS *oSbAS = new SbAS(vrp, oPheromoneInf, vrp.getNumOrders(), 5, 5, 0.95, 5);
+    SOD *oCurrentSolution = oSbAS->run();
+
+    qDebug() << oCurrentSolution->getCostSolution();
+    ShowRoutes *show = new ShowRoutes(oCurrentSolution, 10, "Solucao");
+    show->show();
+    */
+
     //Apply sweep algorithm on instace
     //SweepAlgorithm sweep(vrp);
     //sweep.run();
@@ -42,4 +53,5 @@ int main(int argc, char *argv[])
     show->show();
 
     return a.exec();
+
 }

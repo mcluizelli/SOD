@@ -8,7 +8,7 @@ bool compareDecreseSaving(SavingAS saving1, SavingAS saving2){
     else return false;
 }
 
-SbAS::SbAS(SOD oSodInitialSolution, PheromoneInf *oPheromoneInf, int iNumTotalAnts , float nAlpha, float nBeta, float nRo, int iNumSolutionElitist)
+SbAS::SbAS(SOD oSodInitialSolution, PheromoneInf *oPheromoneInf, int iNumTotalAnts , float nAlpha, float nBeta, float nRo, int iNumSolutionElitist, int iNumTotalAntsSubProblem)
 {
 
     //Tuning parameter based on reimman paper.
@@ -18,10 +18,11 @@ SbAS::SbAS(SOD oSodInitialSolution, PheromoneInf *oPheromoneInf, int iNumTotalAn
     this->nBeta                   = nBeta;
     this->nRo                     = nRo;
     this->iNumTotalAnts           = iNumTotalAnts;
+    this->iNumTotalAntsSubProblem = iNumTotalAntsSubProblem;
     this->iNumSulutionElitist     = iNumSolutionElitist;
     this->oSodInitialSolution     = oSodInitialSolution;
     this->oPheromoneConcentration = oPheromoneInf;
-
+    this->nCostBestSolution       = (float)RAND_MAX;
     qsrand(time(NULL));
 
 /*
@@ -66,22 +67,35 @@ void SbAS::saveSolution(SOD *oSolution){
 
 SOD* SbAS::run(){
 
-    for(int iAnts = 0; iAnts < this->iNumTotalAnts; iAnts++){
-        SOD *oSolution = stepConstrutive();
-        stepLocalSerch(oSolution);
-        //Lista de solucoes elite.
-        saveSolution(oSolution);
+    float nCostCurrentSolution = 0.0;
+
+    for(int iCont = 0; iCont < this->iNumTotalAnts; iCont++){
+
+        qDebug() << iCont;
+        for(int iAnts = 0; iAnts < this->iNumTotalAnts; iAnts++){
+            SOD *oSolution = stepConstrutive();
+            stepLocalSerch(oSolution);
+            //Lista de solucoes elite.
+            saveSolution(oSolution);
+        }
+        nCostCurrentSolution = this->oSodElitistListSolution.at(0)->getCostSolution();
+
+        if( nCostCurrentSolution < nCostBestSolution){
+            nCostBestSolution = nCostCurrentSolution;
+            this->oSODBestSolution = this->oSodElitistListSolution.at(0);
+        }
+
+        //Utiliza-se a lista de solucoes de elite para realizar a atualizacao de pheromone.
+        stepUpdatePheromone();
+
     }
-    this->oSODBestSolution = this->oSodElitistListSolution.at(0);
-    //Utiliza-se a lista de solucoes de elite para realizar a atualizacao de pheromone.
-    stepUpdatePheromone();
 
     return this->oSODBestSolution;
 }
 
 SOD* SbAS::runForSub(){
     //This runForSub is diferent to run() because dont run the step UpdatePheromone. Its used when is call to subproblem of D-Ants algorithm.
-    for(int iAnts = 0; iAnts < this->iNumTotalAnts; iAnts++){
+    for(int iAnts = 0; iAnts < this->iNumTotalAntsSubProblem; iAnts++){
         SOD *oSolution = stepConstrutive();
         stepLocalSerch(oSolution);
         //Lista de solucoes elite.

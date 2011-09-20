@@ -14,6 +14,14 @@
 
 class SOD;
 
+class OrderRoute{
+
+public:
+    int iIndexOrder;
+    int iIndexRoute;
+
+};
+
 class Depot
 {
 
@@ -36,6 +44,7 @@ public:
     Depot(int iIndex, int iIndexOrder,long int iCoordX, long int iCoordY, int iType, float nCapacity);
     QList<Route*> getRoutes();
     QList<int> getOrdersAlocated();
+    QList<OrderRoute> getNeighbor(int iIndexOrder, int iIndexRoute);
     Route* getRoute(int iIndexRoute);
     void addOrder(int i);
     void addRoute(Route *oRoute);

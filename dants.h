@@ -32,7 +32,7 @@ class DAnts
 private:
 
     //private atribute.
-    int                         iNumMaxIterationDAnts;
+    int                         iNumMaxMilSecRun;
     int                         iNs;
     float                       nCostBestSolution;
     SOD                         oSodInitialSolution;
@@ -48,7 +48,7 @@ private:
 
 public:
 
-    DAnts(SOD oSodInitialSolution, int iNumMaxIterationDAnts);
+    DAnts(SOD oSodInitialSolution, int iNumMaxMilSecRun);
     SOD* run();
 
 };
