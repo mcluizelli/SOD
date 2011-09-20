@@ -31,8 +31,8 @@ private:
     PheromoneInf *oPheromoneInf;
 
     QList<RouteCenterGravity> calculeCenterGravityToRoutes(Depot *oDepot);
-    void sweepAlgorithmModified(QList<RouteCenterGravity> oCentersGravity, SOD *oCurrentSolution, int iContDepot);
-
+    QList<SOD*> sweepAlgorithmModified(QList<RouteCenterGravity> oCentersGravity, SOD *oCurrentSolution, int iContDepot);
+    void applySbASCluster(int iDepot, SOD* oSolution, QList<SOD*> oListSubProblems);
 public:
 
     DAnts(SOD oSodInitialSolution, int iNumMaxIterationDAnts);

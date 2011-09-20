@@ -8,21 +8,30 @@ bool compareDecreseSaving(SavingAS saving1, SavingAS saving2){
     else return false;
 }
 
-SbAS::SbAS(SOD oSodInitialSolution, PheromoneInf *oPheromoneInf)
+SbAS::SbAS(SOD oSodInitialSolution, PheromoneInf *oPheromoneInf, int iNumTotalAnts , float nAlpha, float nBeta, float nRo, int iNumSolutionElitist)
 {
+
     //Tuning parameter based on reimman paper.
-    this->iKNeighbor = oSodInitialSolution.getNumOrders() / 4;
+
+    this->iKNeighbor              = oSodInitialSolution.getNumOrders() / 4;
+    this->nAlpha                  = nAlpha;
+    this->nBeta                   = nBeta;
+    this->nRo                     = nRo;
+    this->iNumTotalAnts           = iNumTotalAnts;
+    this->iNumSulutionElitist     = iNumSolutionElitist;
+    this->oSodInitialSolution     = oSodInitialSolution;
+    this->oPheromoneConcentration = oPheromoneInf;
+
+    qsrand(time(NULL));
+
+/*
     this->nAlpha = 5;
     this->nBeta  = 5;
     this->nRo    = 0.95;
     this->iNumTotalAnts = oSodInitialSolution.getNumOrders();
     this->iNumSulutionElitist = 3;
-    this->oSodInitialSolution = oSodInitialSolution;
-    this->oPheromoneConcentration = oPheromoneInf;
 
-    qsrand(time(NULL));
-
-
+  */
 }
 
 void SbAS::saveSolution(SOD *oSolution){

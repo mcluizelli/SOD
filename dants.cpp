@@ -3,6 +3,7 @@
 #include "sod.h"
 #include "sweepalgorithm.h"
 #include "qmath.h"
+#include "gui/showroutes.h"
 #include <QDebug>
 
 bool comparePolarDAnts(OrderPolar order1, OrderPolar order2){
@@ -27,8 +28,8 @@ SOD* DAnts::run(){
 
     for(int iCont1 = 0; iCont1 < /*iNumMaxIterationDAnts*/1; iCont1++){
 
-        //Firs: Apply SbAS to instance;
-        SbAS *oSbAS = new SbAS(this->oSodInitialSolution, oPheromoneInf);
+        //First: Apply SbAS to solve instance;
+        SbAS *oSbAS = new SbAS(this->oSodInitialSolution, oPheromoneInf, this->oSodInitialSolution.getNumOrders(), 5, 5, 0.95, 3);
         //Return the best solution found so far.
         SOD *oCurrentSolution = oSbAS->run();
 
@@ -37,21 +38,26 @@ SOD* DAnts::run(){
             //Calcule the center of gravity to each route.
             QList<RouteCenterGravity> oCentersGravity = calculeCenterGravityToRoutes(oCurrentSolution->getDepot(iContDepot));
             //Follow the D-Ants algorithm.
-            sweepAlgorithmModified(oCentersGravity, oCurrentSolution, iContDepot);
+            QList<SOD*> oListSubProblems = sweepAlgorithmModified(oCentersGravity, oCurrentSolution, iContDepot);
+            applySbASCluster(iContDepot, oCurrentSolution, oListSubProblems);
         }
+
+        //Falta atualizar a pheromone.
 
         nCostAux = oCurrentSolution->getCostSolution();
         if(nCostAux < nCostBestSolution){
             nCostBestSolution = nCostAux;
             oBestSolution = oCurrentSolution;
+
         }
 
     }
+
     return oBestSolution;
 
 }
 
-void DAnts::sweepAlgorithmModified(QList<RouteCenterGravity> oCentersGravity, SOD *oCurrentSolution, int iContDepot){
+QList<SOD*> DAnts::sweepAlgorithmModified(QList<RouteCenterGravity> oCentersGravity, SOD *oCurrentSolution, int iContDepot){
 
     //1- Define n-s,t - number tour to cluster. ns = number of cluster.
     //Clustering.
@@ -106,41 +112,58 @@ void DAnts::sweepAlgorithmModified(QList<RouteCenterGravity> oCentersGravity, SO
             break;
         }
     }
+
     //A partir daqui criar os Ns cluster de solucoes para serem resolvidos pelo SbAS.
-    int iCont = iIndexFirstCluster + 1;
+    int iCont = iIndexFirstCluster;
     int iContNst = 0;
 
     //Crio uma lista de sub-problemas. (Cluster).
-    QList<SOD*> subProblems;
+    QList<SOD*> oListSubProblems;
 
     QList<int> *oCluster = new QList<int>;
-    for(int iOrder = 0; iOrder < oCentersGravity.at(iIndexFirstCluster).oRoute->getRoute()->size(); iOrder++){
-        oCluster->append(oCentersGravity.at(iIndexFirstCluster).oRoute->getRoute()->at(iOrder));
-    }
 
-    while(iCont != iIndexFirstCluster){
+    for(int i = 0; i < oCentersGravity.size() + 1;){
 
-        if(iContNst < iNst){
+        if(iContNst < iNst && i < oCentersGravity.size()){
 
+            qDebug() << "add route a cluster";
             for(int iOrder = 0; iOrder < oCentersGravity.at(iCont).oRoute->getRoute()->size(); iOrder++){
                 oCluster->append(oCentersGravity.at(iCont).oRoute->getRoute()->at(iOrder));
             }
+            //Incrementa Nst (Numero de rotas por cluster).
+            iContNst++;
+            i++;
+            iCont++;
+            iCont = iCont % oCentersGravity.size();
 
         }else{
+
+            qDebug() << "salva sub";
+            SOD *oSubProblemN = this->oSodInitialSolution.copy(oCluster, opDepotAux);
+            oCluster->clear();
             //Zera contagem de rotas para cada cluster.
             iContNst = 0;
+            oListSubProblems.append(oSubProblemN);
+            if(i == oCentersGravity.size()) break;
 
         }
 
-        iCont++;
-        iCont = iCont % oCentersGravity.size();
-
     }
 
-    qDebug() << "teste";
+    return oListSubProblems;
 
 
+}
 
+void DAnts::applySbASCluster(int iDepot, SOD* oSolution, QList<SOD*> oListSubProblems){
+
+    //Apply the SbAS algorithm each subproblem.
+    QList<SOD*> oListNewSolution;
+
+    for(int i = 0; i < oListSubProblems.size(); i++){
+        SbAS *sb = new SbAS(*oListSubProblems.at(i), this->oPheromoneInf, 50, 5, 5, 0.95, 3) ;
+        oListNewSolution.append(sb->run());
+    }
 
 }
 

@@ -176,26 +176,25 @@ void SOD::showOrders(){
   *@return SOD*
   *@author Marcelo
 **/
-SOD* SOD::copy(QList<int> oListOrders, Depot *oDepot){
+SOD* SOD::copy(QList<int> *oListOrders, Depot *oDepot){
 
     SOD *oCopy = new SOD;
     oCopy->setNumberDepot(1);
 
-    //Do copy of orders based on QList.
-    for(int iCont = 0; iCont < oListOrders.size(); iCont++){
-        Order *p = this->listOrder.at(oListOrders.at(iCont));
+    //Do copy of orders.
+    for(int iCont = 0; iCont < this->listOrder.size(); iCont++){
+        Order *p = this->listOrder.at(iCont);
         oCopy->addOrder(p->getIndex(), p->getCoordX(), p->getCoordY(), p->getDemand(), p->getPriority());
     }
-    oCopy->addOrder(oDepot->getIndexOfOrder(),oDepot->getCoordX(), oDepot->getCoordY(), -1, -1);
 
     //Do copy of depots.
     Depot *d = listDepot.at(oDepot->getIndexDepot());
-    oCopy->addDepot(d->getIndexDepot(), d->getIndexOfOrder(), d->getCoordX(), d->getCoordY(), d->getType(), d->getCapacity());
+    oCopy->addDepot(0, d->getIndexOfOrder(), d->getCoordX(), d->getCoordY(), d->getType(), d->getCapacity());
     Depot* oDepotAux = oCopy->getDepot(d->getIndexDepot());
 
-    foreach(int iOrder, oListOrders){
-        oDepotAux->addOrder(iOrder);
-     }
+    for(int iOrder = 0; iOrder < oListOrders->size(); iOrder++){
+        oDepotAux->addOrder(oListOrders->at(iOrder));
+    }
 
     //return copy.
     return oCopy;

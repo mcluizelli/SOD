@@ -45,7 +45,7 @@ public:
     int    getNumberDepot();
     int    getNumOrders();
     SOD*   copy();
-    SOD*   copy(QList<int> oListOrders, Depot *oDepot);
+    SOD*   copy(QList<int> *oListOrders, Depot *oDepot);
 };
 
 #endif // SOD_H

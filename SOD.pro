@@ -23,7 +23,8 @@ SOURCES += main.cpp\
     sweepalgorithm.cpp \
     sod.cpp \
     gui/showroutes.cpp \
-    gui/mainwindow.cpp
+    gui/mainwindow.cpp \
+    joinroutes.cpp
 
 HEADERS  += \
     dants.h \
@@ -38,9 +39,12 @@ HEADERS  += \
     sweepalgorithm.h \
     sbas.h \
     gui/mainwindow.h \
-    gui/showroutes.h
+    gui/showroutes.h \
+    joinroutes.h
 
 FORMS    += mainwindow.ui
+
+
 
 
 

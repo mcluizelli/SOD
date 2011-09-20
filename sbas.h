@@ -43,7 +43,7 @@ private:
     void            saveSolution(SOD *oSolution);
 
 public:
-    SbAS(SOD oSodInitialSolution, PheromoneInf *oPheromoneInf);
+    SbAS(SOD oSodInitialSolution, PheromoneInf *oPheromoneInf, int iNumTotalAnts, float nAlpha, float nBeta, float nRo, int iNumSolutionElitist);
     SOD* run();
     //In this step is aplied a saving algorith for the Ant System.
     SOD* stepConstrutive();
