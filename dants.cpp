@@ -17,7 +17,7 @@ bool comparePolarDAnts(OrderPolar order1, OrderPolar order2){
 DAnts::DAnts(SOD oSodInitialSolution, int iNumMaxMilSecRun)
 {
     this->iNs = 3;
-    this->nCostBestSolution = (float)9999999999;
+    this->nCostBestSolution = (float)RAND_MAX;
     this->oSodInitialSolution = oSodInitialSolution;
     this->iNumMaxMilSecRun = iNumMaxMilSecRun;
     this->oPheromoneInf = new PheromoneInf(&oSodInitialSolution);
@@ -29,14 +29,16 @@ SOD* DAnts::run(){
     QTime oTempo;
     oTempo.start();
 
-    while(oTempo.elapsed() < this->iNumMaxMilSecRun){
+    //while(oTempo.elapsed() < this->iNumMaxMilSecRun){
+    for(int i = 0; i < 20; i++){
 
         //First: Apply SbAS to solve instance;
-        SbAS *oSbAS = new SbAS(this->oSodInitialSolution, oPheromoneInf, 3, 5, 5, 0.95, 3, 75);
+        SbAS *oSbAS = new SbAS(this->oSodInitialSolution, oPheromoneInf, this->oSodInitialSolution.getNumOrders()
+                               ,5, 5, 0.95, 5, 75);
         //Return the best solution found so far.solution quality
         SOD *oCurrentSolution = oSbAS->run();
-        oBestSolution = oCurrentSolution;
-
+        //oBestSolution = oCurrentSolution;
+        //qDebug() << oBestSolution->getCostSolution();
         //Here start the application of D-Ants.
         for(int iContDepot = 0; iContDepot < oCurrentSolution->getNumberDepot(); iContDepot++){
             //Calcule the center of gravity to each route.
@@ -56,12 +58,13 @@ SOD* DAnts::run(){
         if(nCostAux < nCostBestSolution){
             nCostBestSolution = nCostAux;
             oBestSolution = oCurrentSolution;
+            updatePheromone(oBestSolution);
         }
-
+        qDebug() << nCostBestSolution;
         this->oRouteIndexByCluster.clear();
 
     }
-
+    qDebug() << "Best Cost: " << nCostBestSolution;
     return oBestSolution;
 
 }
@@ -137,7 +140,6 @@ QList<SOD*> DAnts::sweepAlgorithmModified(QList<RouteCenterGravity> oCentersGrav
 
         if(iContNst < iNst && i < oCentersGravity.size()){
 
-            //qDebug() << "add route a cluster";
             for(int iOrder = 0; iOrder < oCentersGravity.at(iCont).oRoute->getRoute()->size(); iOrder++){
                 oCluster->append(oCentersGravity.at(iCont).oRoute->getRoute()->at(iOrder));
             }
@@ -150,7 +152,6 @@ QList<SOD*> DAnts::sweepAlgorithmModified(QList<RouteCenterGravity> oCentersGrav
 
         }else{
 
-            //qDebug() << "salva sub";
             SOD *oSubProblemN = this->oSodInitialSolution.copy(oCluster, opDepotAux);
 
             this->oRouteIndexByCluster.append(oRouteIndexCluster);
@@ -178,7 +179,8 @@ QList<SOD*> DAnts::applySbASCluster(QList<SOD*> oListSubProblems){
 
     for(int i = 0; i < oListSubProblems.size(); i++){
         //Call SbAS for solve the subproblems.
-        SbAS *sb = new SbAS(*oListSubProblems.at(i), this->oPheromoneInf, 1, 5, 5, 0.95, 3, 75) ;
+        SbAS *sb = new SbAS(*oListSubProblems.at(i), this->oPheromoneInf
+                            ,oListSubProblems.at(i)->getDepot(0)->getNumOrdersAlocated() , 5, 5, 0.95, 3, 100);
         oListNewSolution.append(sb->runForSub());
     }
 
@@ -192,6 +194,8 @@ void DAnts::compareResults(int iDepot, SOD *oSolution, QList<SOD*> oListSubProbl
     float nNewCostSubProblem = 0.0, nCurrentCost = 0.0;
     float nCostFinal = 0.0;
     Depot *oDepotAux = oSolution->getDepot(iDepot);
+    QList<int> oRouteToRemove;
+    QList<SOD*> oRoutesToAdd;
 
     for(int iContSubProblem = 0; iContSubProblem < oListSubProblems.size(); iContSubProblem++){
 
@@ -207,29 +211,73 @@ void DAnts::compareResults(int iDepot, SOD *oSolution, QList<SOD*> oListSubProbl
         if(nCurrentCost > nNewCostSubProblem){
             //Rota nova é melhor, entao removo a anterior e insiro a nova.
             nCostFinal += nNewCostSubProblem;
-
-            //remove
-            for(int i = 0; i < this->oRouteIndexByCluster.at(iContSubProblem).oListIndexRoutes.size(); i++){
-                oDepotAux->removeRoute(this->oRouteIndexByCluster.at(iContSubProblem).oListIndexRoutes.at(i));
-            }
-
-            //add
-            for(int i = 0; i < oSubProblem->getDepot(0)->getRoutes(); i++){
-                Route *oNewRoute = new Route;
-                for(int j = 0; j < oSubProblem->getDepot(0)->getRoutes().size(); j++){
-                    oNewRoute->addOrder(oSubProblem->getDepot(0)->getRoutes().at(j));
-                }
-                oDepotAux->addRoute(oNewRoute);
-
-            }
-
+            oRouteToRemove.append(this->oRouteIndexByCluster.at(iContSubProblem).oListIndexRoutes);
+            oRoutesToAdd.append(oSubProblem);
         }else{
             nCostFinal += nCurrentCost;
         }
 
     }
 
-    qDebug() << "Novo: " << nCostFinal << " Anterior: " << oSolution->getCostSolution();
+    //Do all modifications
+
+    //Remove all mark routes on the solution.
+    qSort(oRouteToRemove);
+    for(int i = oRouteToRemove.size() - 1; i >= 0; i--){
+        oDepotAux->removeRoute(oRouteToRemove.at(i));
+    }
+
+    //Add new Routes.
+    for(int iContRoutesAdd = 0; iContRoutesAdd < oRoutesToAdd.size(); iContRoutesAdd++){
+
+        Depot *oDeptoNewRoute =  oRoutesToAdd.at(iContRoutesAdd)->getDepot(0);
+        QList<Route*> oRoutes = oDeptoNewRoute->getRoutes();
+        for(int iContRoute = 0; iContRoute < oRoutes.size() ; iContRoute++){
+
+            QList<int> *oOrders = oRoutes.at(iContRoute)->getRoute();
+            Route *newRoute = new Route;
+            for(int iContOrder = 0; iContOrder < oOrders->size(); iContOrder++){
+                newRoute->addOrder(oOrders->at(iContOrder));
+            }
+            oDepotAux->addRoute(newRoute);
+        }
+    }
+
+
+}
+
+void DAnts::updatePheromone(SOD *oSODBestSolution){
+
+    int iNumElitist = 6;
+    float nValueAux = 0.0, nValueNew = 0.0;
+
+    for(int iContDepot = 0; iContDepot < oSODBestSolution->getNumberDepot(); iContDepot++){
+
+        Depot *oDepotAux = oSODBestSolution->getDepot(iContDepot);
+        QList<Route*> oRoutesAux = oDepotAux->getRoutes();
+
+        for(int iContRoute = 1; iContRoute < oRoutesAux.size(); iContRoute++){
+
+            QList<int> *oOrders = oRoutesAux.at(iContRoute)->getRoute();
+            nValueAux = this->oPheromoneInf->getPheromoneArc(oDepotAux->getIndexOfOrder(), oOrders->at(0));
+            nValueNew = nValueAux + iNumElitist * (float(1)/nCostBestSolution);
+            this->oPheromoneInf->setPheromoneArc(oDepotAux->getIndexOfOrder(), oOrders->at(0), nValueNew);
+            for(int iContOrders; iContOrders < oOrders->size() - 1; iContOrders++){
+
+                nValueAux = this->oPheromoneInf->getPheromoneArc(oOrders->at(iContOrders), oOrders->at(iContOrders + 1));
+                nValueNew = nValueAux + iNumElitist * (float(1)/nCostBestSolution);
+                this->oPheromoneInf->setPheromoneArc(oOrders->at(iContOrders), oOrders->at(iContOrders + 1), nValueNew);
+
+            }
+
+            nValueAux = this->oPheromoneInf->getPheromoneArc(oOrders->at(oOrders->size()-1), oDepotAux->getIndexOfOrder());
+            nValueNew = nValueAux + iNumElitist * (float(1)/nCostBestSolution);
+            this->oPheromoneInf->setPheromoneArc(oOrders->at(oOrders->size()-1), oDepotAux->getIndexOfOrder(), nValueNew);
+
+
+        }
+
+    }
 }
 
 QList<RouteCenterGravity> DAnts::calculeCenterGravityToRoutes(Depot *oDepot){

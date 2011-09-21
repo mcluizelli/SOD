@@ -28,6 +28,12 @@ public:
     int      iIndex;
 };
 
+class AtractivenessItemValue{
+public:
+    AtractivenessItem item;
+    float             value;
+};
+
 class SbAS
 {
 private:

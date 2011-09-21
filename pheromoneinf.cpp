@@ -9,7 +9,7 @@ PheromoneInf::PheromoneInf(SOD *oSODSolution)
     for(int iCont = 0; iCont < iNumOrders; iCont++)
         this->npPheromoneConcentration[iCont] = new float[iNumOrders];
 
-    //In the beginm, all arcs have value 1 for pheromone concentration.
+    //In the begin, all arcs have value equal to 1 for pheromone concentration.
     for(int iCont1 = 0; iCont1 < iNumOrders; iCont1++){
         for(int iCont2 = 0; iCont2 < iNumOrders; iCont2++){
             this->npPheromoneConcentration[iCont1][iCont2] = 1;

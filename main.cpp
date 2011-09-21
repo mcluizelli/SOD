@@ -20,15 +20,15 @@ int main(int argc, char *argv[])
 
     //Read instance file.
     InputCanonicalVRP input;
-    SOD vrp = input.read("vrpnc1.txt");
+    SOD vrp = input.read("vrpnc2.txt");
 
     //Alocated orders to depots.
     vrp.alocateOrderToDepots();
 
     //Apply SbAS algorithm
-    /*
-    PheromoneInf *oPheromoneInf = new PheromoneInf(&vrp);
-    SbAS *oSbAS = new SbAS(vrp, oPheromoneInf, vrp.getNumOrders(), 5, 5, 0.95, 5);
+
+    /*PheromoneInf *oPheromoneInf = new PheromoneInf(&vrp);
+    SbAS *oSbAS = new SbAS(vrp, oPheromoneInf, vrp.getNumOrders(), 5, 5, 0.95, 5, 75);
     SOD *oCurrentSolution = oSbAS->run();
 
     qDebug() << oCurrentSolution->getCostSolution();
@@ -41,11 +41,11 @@ int main(int argc, char *argv[])
     //sweep.run();
 
     //Apply D-Ants
-    DAnts oDAnts(vrp, 10);
+    DAnts oDAnts(vrp, 60000);
     SOD *oSolutionBest = oDAnts.run();
 
     //Get cost solution
-    qDebug() << oSolutionBest->getCostSolution() << " in time =" << (float)oTempo.elapsed()/(float)1000 << " sec";
+    //qDebug() << oSolutionBest->getCostSolution() << " in time =" << (float)oTempo.elapsed()/(float)1000 << " sec";
     //vrp.showSolution();
 
     //Show solution in GUI

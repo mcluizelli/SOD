@@ -45,6 +45,7 @@ private:
     QList<SOD*>                 sweepAlgorithmModified(QList<RouteCenterGravity> oCentersGravity, SOD *oCurrentSolution, int iContDepot);
     QList<SOD*>                 applySbASCluster(QList<SOD*> oListSubProblems);
     void                        compareResults(int iDepot, SOD *oSolution, QList<SOD*> oListSubProblems);
+    void                        updatePheromone(SOD *oSODBestSolution);
 
 public:
 

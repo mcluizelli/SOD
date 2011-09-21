@@ -3,6 +3,11 @@
 #include <QDebug>
 #include <qmath.h>
 
+bool compareDecreaseAtractivenessItemValue(AtractivenessItemValue p1, AtractivenessItemValue p2){
+    if(p1.value < p2.value) return true;
+    else return false;
+}
+
 bool compareDecreseSaving(SavingAS saving1, SavingAS saving2){
     if(saving1.nValue > saving2.nValue) return true;
     else return false;
@@ -41,26 +46,31 @@ void SbAS::saveSolution(SOD *oSolution){
     float nCostAux= 0.0;
     int   iIndex = 0;
 
-    if(this->oSodElitistListSolution.size() < this->iNumSulutionElitist){
+    if(this->oSodElitistListSolution.size() < this->iNumSulutionElitist - 1){
         for(int iCont = 0; iCont < this->oSodElitistListSolution.size(); iCont++){
             nCostAux = this->oSodElitistListSolution.at(iCont)->getCostSolution();
             iIndex = iCont;
             if(nCostSolution <= nCostAux){
+                this->oSodElitistListSolution.insert(iIndex, oSolution);
                 break;
             }
         }
-        this->oSodElitistListSolution.insert(iIndex, oSolution);
+        this->oSodElitistListSolution.append(oSolution);
+
     }else{
-        for(int iCont = 0; iCont < this->oSodElitistListSolution.size(); iCont++){
-            nCostAux = this->oSodElitistListSolution.at(iCont)->getCostSolution();
-            iIndex = iCont;
-            if(nCostSolution <= nCostAux){
-                break;
-            }
-        }
-        this->oSodElitistListSolution.insert(iIndex, oSolution);
-        if(this->oSodElitistListSolution.size() == this->iNumSulutionElitist){
+        nCostAux = this->oSodElitistListSolution.at(this->oSodElitistListSolution.size() - 1)->getCostSolution();
+        if(nCostSolution < nCostAux){
+
             this->oSodElitistListSolution.removeLast();
+            for(int iCont = 0; iCont < this->oSodElitistListSolution.size(); iCont++){
+                nCostAux = this->oSodElitistListSolution.at(iCont)->getCostSolution();
+                iIndex = iCont;
+                if(nCostSolution <= nCostAux){
+                    break;
+                }
+            }
+            this->oSodElitistListSolution.insert(iIndex, oSolution);
+
         }
     }
 }
@@ -69,9 +79,9 @@ SOD* SbAS::run(){
 
     float nCostCurrentSolution = 0.0;
 
-    for(int iCont = 0; iCont < this->iNumTotalAnts; iCont++){
+    for(int iCont = 0; iCont < 10; iCont++){
 
-        qDebug() << iCont;
+        //qDebug() << iCont;
         for(int iAnts = 0; iAnts < this->iNumTotalAnts; iAnts++){
             SOD *oSolution = stepConstrutive();
             stepLocalSerch(oSolution);
@@ -86,9 +96,10 @@ SOD* SbAS::run(){
         }
 
         //Utiliza-se a lista de solucoes de elite para realizar a atualizacao de pheromone.
-        stepUpdatePheromone();
 
     }
+
+    stepUpdatePheromone();
 
     return this->oSODBestSolution;
 }
@@ -107,10 +118,11 @@ SOD* SbAS::runForSub(){
 }
 
 void SbAS::stepUpdatePheromone(){
+    //qDebug() << "Update Pheromone";
     int iNumOrders = this->oSodInitialSolution.getNumOrders();
     float nValueAux = 0.0;
     float nValueNew = 0.0;
-    float nCostBestSolution = this->oSodElitistListSolution.at(0)->getCostSolution();
+    float nCostBestSolution = this->oSODBestSolution->getCostSolution();
 
     //All arcs are avaporated.
     for(int iCont1 = 0; iCont1 < iNumOrders; iCont1++){
@@ -131,18 +143,18 @@ void SbAS::stepUpdatePheromone(){
 
             QList<int> *oOrders = oRoutesAux.at(iContRoute)->getRoute();
             nValueAux = this->oPheromoneConcentration->getPheromoneArc(oDepotAux->getIndexOfOrder(), oOrders->at(0));
-            nValueNew = nValueAux + this->iNumSulutionElitist * (float(1)/nCostBestSolution);
+            nValueNew = nValueAux + ( this->iNumSulutionElitist * (float(1)/nCostBestSolution) );
             this->oPheromoneConcentration->setPheromoneArc(oDepotAux->getIndexOfOrder(), oOrders->at(0), nValueNew);
             for(int iContOrders; iContOrders < oOrders->size() - 1; iContOrders++){
 
                 nValueAux = this->oPheromoneConcentration->getPheromoneArc(oOrders->at(iContOrders), oOrders->at(iContOrders + 1));
-                nValueNew = nValueAux + this->iNumSulutionElitist * (float(1)/nCostBestSolution);
+                nValueNew = nValueAux + ( this->iNumSulutionElitist * (float(1)/nCostBestSolution) );
                 this->oPheromoneConcentration->setPheromoneArc(oOrders->at(iContOrders), oOrders->at(iContOrders + 1), nValueNew);
 
             }
 
             nValueAux = this->oPheromoneConcentration->getPheromoneArc(oOrders->at(oOrders->size()-1), oDepotAux->getIndexOfOrder());
-            nValueNew = nValueAux + this->iNumSulutionElitist * (float(1)/nCostBestSolution);
+            nValueNew = nValueAux + ( this->iNumSulutionElitist * (float(1)/nCostBestSolution) );
             this->oPheromoneConcentration->setPheromoneArc(oOrders->at(oOrders->size()-1), oDepotAux->getIndexOfOrder(), nValueNew);
 
 
@@ -151,7 +163,7 @@ void SbAS::stepUpdatePheromone(){
     }
 
     //Update of rth best solution.
-    for(int iContSolution = 1; iContSolution < iNumSulutionElitist; iContSolution++){
+    for(int iContSolution = 1; iContSolution < this->oSodElitistListSolution.size(); iContSolution++){
 
         SOD *oSolutionAux = this->oSodElitistListSolution.at(iContSolution);
         float nCostSolution = oSolutionAux->getCostSolution();
@@ -160,7 +172,7 @@ void SbAS::stepUpdatePheromone(){
             Depot *oDepotAux = oSolutionAux->getDepot(iContDepot);
             QList<Route*> oRoutesAux = oDepotAux->getRoutes();
 
-            for(int iContRoute = 1; iContRoute < oRoutesAux.size(); iContRoute++){
+            for(int iContRoute = 0; iContRoute < oRoutesAux.size(); iContRoute++){
 
                 QList<int> *oOrders = oRoutesAux.at(iContRoute)->getRoute();
                 nValueAux = this->oPheromoneConcentration->getPheromoneArc(oDepotAux->getIndexOfOrder(), oOrders->at(0));
@@ -201,7 +213,7 @@ int SbAS::returnAtractivenessList(QList<SavingAS> *oListSaving, Depot *oDepotAux
     int iContNeighbor = 0;
     QList<AtractivenessItem> oAtractivenessList;
     QList<float> oAtractivenessValue;
-
+    QList<AtractivenessItemValue> oListRandon;
 
     for(int iContSaving = 0; iContSaving < oListSaving->size(); iContSaving++){
 
@@ -222,7 +234,7 @@ int SbAS::returnAtractivenessList(QList<SavingAS> *oListSaving, Depot *oDepotAux
              &&
              (r2->getRoute()->at(0) == oSavingAux.iOrder2 || r2->getRoute()->at(r2->getRoute()->size() - 1) == oSavingAux.iOrder2) ){
             AtractivenessItem oItem;
-            oItem.iItem = oSavingAux;
+            oItem.iItem  = oSavingAux;
             oItem.iIndex = iContSaving;
 
             oAtractivenessList.append(oItem);
@@ -235,6 +247,7 @@ int SbAS::returnAtractivenessList(QList<SavingAS> *oListSaving, Depot *oDepotAux
         if(iContNeighbor == iKNeighbor) break;
     }
 
+
     for(int iCont = 0; iCont < oAtractivenessList.size(); iCont++){
         nSumAtractivenessNeighbor += oAtractivenessList.at(iCont).iItem.nValue;
     }
@@ -244,23 +257,30 @@ int SbAS::returnAtractivenessList(QList<SavingAS> *oListSaving, Depot *oDepotAux
         nAtractivenessAux = oAtractivenessList.at(iCont).iItem.nValue/nSumAtractivenessNeighbor;
         oAtractivenessValue.append(nAtractivenessAux);
         nSumAtractivenessNeighborNormalized += nAtractivenessAux;
+        AtractivenessItemValue p;
+        p.value = nAtractivenessAux;
+        p.item = oAtractivenessList.at(iCont);
+        oListRandon.append(p);
     }
+
+    qSort(oListRandon.begin(), oListRandon.end(), compareDecreaseAtractivenessItemValue);
 
     //Generate a pseudo random number.
     float nRand = (float)qrand() / (float)RAND_MAX;
     float nSum = 0.0;
     int iIndex = 0;
-    for(int iCont = 0; iCont < oAtractivenessValue.size(); iCont++){
+    for(int iCont = 0; iCont < oListRandon.size(); iCont++){
 
-        nSum += oAtractivenessValue.at(iCont);
+        nSum += oListRandon.at(iCont).value;
         if(nRand < nSum){
-            iIndex = oAtractivenessList.at(iCont).iIndex;
+            iIndex = oListRandon.at(iCont).item.iIndex;
             break;
         }
 
     }
 
     return iIndex;
+
 }
 
 SOD* SbAS::stepConstrutive(){
@@ -286,9 +306,8 @@ SOD* SbAS::stepConstrutive(){
         }
 
         QList<SavingAS> oListSaving = buildSavingList(oDepotAux);
-        //qDebug() << "Building solution";
+        //"Building solution";
 
-        //Arrumar este for... condicao de parada. ARRUMAR
         for(int iContSaving = 0; iContSaving < oListSaving.size(); iContSaving++){
 
             int in = returnAtractivenessList(&oListSaving, oDepotAux);
@@ -297,7 +316,7 @@ SOD* SbAS::stepConstrutive(){
             SavingAS oSavingAux = oListSaving.at(in);
 
             //Remover estas rotas e incluir uma com as duas.
-            //qDebug() << "Trying " << oSavingAux.iOrder1 << "," << oSavingAux.iOrder2;
+            // << "Trying " << oSavingAux.iOrder1 << "," << oSavingAux.iOrder2;
             int iIndexRoute1 = oDepotAux->getRouteByOrder(oSavingAux.iOrder1);
             int iIndexRoute2 = oDepotAux->getRouteByOrder(oSavingAux.iOrder2);
 
@@ -348,7 +367,7 @@ SOD* SbAS::stepConstrutive(){
                 oDepotAux->addRoute(r3);
 
             }else{
-                //qDebug() << "infeasible saving";
+                //<< "infeasible saving";
             }
 
             oListSaving.removeAt(in);
