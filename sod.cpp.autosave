@@ -315,7 +315,7 @@ float SOD::getCostSolution(){
 
 }
 
-float  SOD::getDemandaRouteByDepot(int iIndexDepot, int iIndexRoute){
+float  SOD::getDemandRouteByDepotIndex(int iIndexDepot, int iIndexRoute){
 
     float nCost = 0.0;
 

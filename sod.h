@@ -35,6 +35,7 @@ public:
     float  getCostSolution();
     float  getCostDepot(int iIndexDepot);
     float  getCostRouteByDepot(int iIndexDepot, int iIndexRoute);
+    float  getDemandRouteByDepotIndex(int iIndexDepot, int iIndexRoute);
     float  getDemandRoute(Route *oRoute);
     void   addOrder(int iIndex, long int iCoordX, long int iCoordY, float nDemand, int iPriority);
     void   addDepot(int iIndexDepot, int iIndexOrder, long int iCoordX, long int iCoordY, int iType, float nCapacity);

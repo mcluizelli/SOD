@@ -17,8 +17,12 @@ class SOD;
 class OrderRoute{
 
 public:
+    //Indice na lista
     int iIndexOrder;
+    //Indece da Rota
     int iIndexRoute;
+    //Valor no indice da lista
+    int iValue;
 
 };
 
@@ -58,7 +62,6 @@ public:
     int getIndexOfOrder();
     int getNumOrdersAlocated();
     float getCapacity();
-    float getDemandByRoute(int iRoute);
 };
 
 #endif // DEPOT_H
