@@ -180,7 +180,7 @@ QList<SOD*> DAnts::applySbASCluster(QList<SOD*> oListSubProblems){
     for(int i = 0; i < oListSubProblems.size(); i++){
         //Call SbAS for solve the subproblems.
         SbAS *sb = new SbAS(*oListSubProblems.at(i), this->oPheromoneInf
-                            ,oListSubProblems.at(i)->getDepot(0)->getNumOrdersAlocated() , 5, 5, 0.95, 3, 100);
+                            ,oListSubProblems.at(i)->getDepot(0)->getNumOrdersAlocated() , 5, 5, 0.95, 3, 50);
         oListNewSolution.append(sb->runForSub());
     }
 

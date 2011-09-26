@@ -1,5 +1,6 @@
 #include "sbas.h"
 #include "opt2.h"
+#include "swap.h"
 #include <QDebug>
 #include <qmath.h>
 
@@ -202,6 +203,8 @@ void SbAS::stepUpdatePheromone(){
 void SbAS::stepLocalSerch(SOD *oSolution){
     Opt2 opt(oSolution);
     opt.performeMove();
+    Swap swap(oSolution);
+    swap.performeMove();
 }
 
 int SbAS::returnAtractivenessList(QList<SavingAS> *oListSaving, Depot *oDepotAux){
