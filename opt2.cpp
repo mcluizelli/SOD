@@ -10,7 +10,6 @@ Opt2::Opt2(SOD *opSolution)
 
 void Opt2::performeMove(){
 
-
     Depot *depotAux = this->opSolution->getDepot(0);
     int iFlagOp = 0;
     int iFlagInverserOrder4 = 0;
@@ -57,6 +56,7 @@ void Opt2::performeMove(){
                         iBestOrder4 = iOrder4;
                         hasImprove = true;
                     }
+
                     r1Rota->swap(iOrder3, iOrder2);
 
                     if(iOrder4 == -1){

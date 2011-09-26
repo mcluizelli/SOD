@@ -25,7 +25,8 @@ SOURCES += main.cpp\
     gui/showroutes.cpp \
     gui/mainwindow.cpp \
     joinroutes.cpp \
-    swap.cpp
+    swap.cpp \
+    savingsalgorithm.cpp
 
 HEADERS  += \
     dants.h \
@@ -46,9 +47,12 @@ HEADERS  += \
     joinRoutes/simplemove.h \
     joinRoutes/route.h \
     joinRoutes/moves.h \
-    joinRoutes/joinroutes.h
+    joinRoutes/joinroutes.h \
+    savingsalgorithm.h
 
 FORMS    += mainwindow.ui
+
+
 
 
 
