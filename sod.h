@@ -48,6 +48,7 @@ public:
     int    getNumOrders();
     SOD*   copy();
     SOD*   copy(QList<int> *oListOrders, Depot *oDepot);
+    QList<OrderRoute> getNeighbor(int iDepot, int iIndexOrder, int iIndexRoute);
 };
 
 #endif // SOD_H

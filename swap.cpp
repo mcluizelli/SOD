@@ -1,3 +1,4 @@
+#include <QDebug>
 #include "swap.h"
 
 Swap::Swap(SOD *opSolution)
@@ -7,10 +8,13 @@ Swap::Swap(SOD *opSolution)
 
 void Swap::performeMove(){
 
+    float nBetterDiference = this->opSolution->getCostSolution();
     int iNumDepot = this->opSolution->getNumberDepot();
     float nCostRouteAux = 0.0, nNewCostRouteAux = 0.0;
     bool hasImprove = true;
-    int iIndexOrderBest1 = 0, iIndexOrderBest2 = 0;
+    int iRouteBest1 = 0, iRouteBest2 = 0;
+    int iIndexBest1 = 0, iIndexBest2 = 0;
+    int iValueBest1 = 0, iValueBest2 = 0;
 
     for(int iContDepot = 0; iContDepot < iNumDepot; iContDepot++){
 
@@ -30,7 +34,7 @@ void Swap::performeMove(){
                 for( int iContOrder = 0; iContOrder < oRoute1->size(); iContOrder++){
 
                     //OrderRoute store index of route and index of order.
-                    QList<OrderRoute> oListNeighbor = opDepot->getNeighbor(oRoute1->at(iContOrder), iContRoute1);
+                    QList<OrderRoute> oListNeighbor = this->opSolution->getNeighbor(iContDepot, oRoute1->at(iContOrder), iContRoute1);
 
                     for(int iContNeighbor = 0; iContNeighbor < oListNeighbor.size(); iContNeighbor++){
 
@@ -42,7 +46,7 @@ void Swap::performeMove(){
                         int iStoreValueIndexNeighbor = oListNeighbor.at(iContNeighbor).iValue;
 
                         //Indices
-                        int iIndex  = iContOrder;
+                        int iIndex  = oRoute1->at(iContOrder);
                         int iIndex2 = oListNeighbor.at(iContNeighbor).iIndexOrder;
 
                         //Order
@@ -53,21 +57,37 @@ void Swap::performeMove(){
                         int iRoute  = iContRoute1;
                         int iRoute2  = oListNeighbor.at(iContNeighbor).iIndexRoute;
 
-                        float nCapacityRoute = this->opSolution->getDemandRouteByDepotIndex(iContDepot, iRoute2);
+                        float nCapacityRoute  = this->opSolution->getDemandRouteByDepotIndex(iContDepot, iRoute2);
                         float nCapacityRoute2 = this->opSolution->getDemandRouteByDepotIndex(iContDepot, iRoute);
 
-                        if( (nCapacityRoute + oOrder1->getDemand() <= opDepot->getCapacity())
-                                && (nCapacityRoute2 + oOrder2->getDemand() <= opDepot->getCapacity()) ){
+                        if( (nCapacityRoute - oOrder2->getDemand() + oOrder1->getDemand() <= opDepot->getCapacity())
+                                && (nCapacityRoute2 - oOrder1->getDemand() + oOrder2->getDemand() <= opDepot->getCapacity()) ){
+
                             //Try move;
 
-                            nNewCostRouteAux = nCostRouteAux = this->opSolution->getCostRouteByDepot(opDepot->getIndexDepot(), iContRoute1);
+                            oRoute1->replace(iContOrder, iStoreValueIndexNeighbor);
+                            Route *oRoute2 = opDepot->getRoute(iRoute2);
+                            oRoute2->getRoute()->replace(iIndex2, iStoreValueIndex);
 
-                            if(nNewCostRouteAux < nCostRouteAux){
+                            //nNewCostRouteAux = this->opSolution->getCostRouteByDepot(opDepot->getIndexDepot(), iContRoute1);
+                            nNewCostRouteAux = this->opSolution->getCostSolution();
 
-                                iIndexOrderBest1 = iContOrder;
-                                iIndexOrderBest2 = oListNeighbor.at(iContNeighbor);
+                            if(nNewCostRouteAux < nBetterDiference){
+                                nBetterDiference = nNewCostRouteAux;
+                                //Store route and order index.
+                                iIndexBest1 = iContOrder;
+                                iIndexBest2 = iIndex2;
+                                iRouteBest1 = iContRoute1;
+                                iRouteBest2 = iRoute2;
+                                iValueBest1 = iStoreValueIndex;
+                                iValueBest2 = iStoreValueIndexNeighbor;
+                                hasImprove  = true;
 
                             }
+
+                            oRoute1->replace(iContOrder, iStoreValueIndex);
+                            oRoute2->getRoute()->replace(iIndex2, iStoreValueIndexNeighbor);
+
 
                         }
 
@@ -78,6 +98,13 @@ void Swap::performeMove(){
             }
 
             if(hasImprove){
+
+                Route *oRoute1 = opDepot->getRoute(iRouteBest1);
+                Route *oRoute2 = opDepot->getRoute(iRouteBest2);
+
+                oRoute1->getRoute()->replace(iIndexBest1, iValueBest2);
+                oRoute2->getRoute()->replace(iIndexBest2, iValueBest1);
+                hasImprove = true;
 
             }
 

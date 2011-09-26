@@ -55,9 +55,6 @@ QList<int> Depot::getOrdersAlocated() {
     return this->ordersAlocated;
 }
 
-QList<OrderRoute> Depot::getNeighbor(int iIndexOrder, int iIndexRoute){
-
-}
 
 long int Depot::getCoordX() const{
     return this->iCoordX;

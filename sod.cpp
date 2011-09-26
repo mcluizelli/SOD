@@ -315,7 +315,41 @@ float SOD::getCostSolution(){
 
 }
 
-float  SOD::getDemandaRouteByDepot(int iIndexDepot, int iIndexRoute){
+QList<OrderRoute> SOD::getNeighbor(int iDepot, int iIndexOrder, int iIndexRoute){
+
+    float nDistMax = 50, nDist = 0.0;
+    QList<OrderRoute> oListNeighbor;
+    Depot *oDepot = listDepot.at(iDepot);
+    QList<Route*> oListRoute = oDepot->getRoutes();
+    oListNeighbor.clear();
+
+    for(int iContRoute = 0; iContRoute < oListRoute.size(); iContRoute++){
+
+        if(iContRoute != iIndexRoute){
+            Route *oRoute = oListRoute.at(iContRoute);
+            QList<int> *oOrders = oRoute->getRoute();
+            for(int iContOrder = 0; iContOrder < oOrders->size(); iContOrder++){
+
+                nDist = getDistance(iIndexOrder, oOrders->at(iContOrder));
+                if(nDist <= nDistMax){
+                    OrderRoute r;
+                    r.iIndexOrder = iContOrder;
+                    r.iIndexRoute = iContRoute;
+                    r.iValue      = oOrders->at(iContOrder);
+                    oListNeighbor.append(r);
+                }
+
+            }
+
+        }
+
+    }
+
+    return oListNeighbor;
+
+}
+
+float  SOD::getDemandRouteByDepotIndex(int iIndexDepot, int iIndexRoute){
 
     float nCost = 0.0;
 
